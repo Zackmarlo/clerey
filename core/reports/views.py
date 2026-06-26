@@ -176,7 +176,7 @@ class ASDVideosView(APIView):
         if isinstance(scan_result, Response):
             return scan_result
 
-        # Save videos to disk.
+        # Save videos through Django's configured storage.
         # update_or_create means: if an ASDReport for this child already exists (e.g. physiology was uploaded first), update it. Otherwise create a new one.
         report, _ = ASDReport.objects.update_or_create(
             child=child,

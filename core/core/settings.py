@@ -71,6 +71,21 @@ INSTALLED_APPS = [
     'errors',
 ]
 
+RAILWAY_BUCKET_NAME = os.environ.get("BUCKET") or os.environ.get("AWS_STORAGE_BUCKET_NAME")
+RAILWAY_BUCKET_ACCESS_KEY_ID = os.environ.get("ACCESS_KEY_ID") or os.environ.get("AWS_ACCESS_KEY_ID")
+RAILWAY_BUCKET_SECRET_ACCESS_KEY = os.environ.get("SECRET_ACCESS_KEY") or os.environ.get("AWS_SECRET_ACCESS_KEY")
+RAILWAY_BUCKET_ENDPOINT = os.environ.get("ENDPOINT") or os.environ.get("AWS_S3_ENDPOINT_URL")
+RAILWAY_BUCKET_REGION = os.environ.get("REGION") or os.environ.get("AWS_S3_REGION_NAME") or "auto"
+USE_RAILWAY_BUCKET_STORAGE = all([
+    RAILWAY_BUCKET_NAME,
+    RAILWAY_BUCKET_ACCESS_KEY_ID,
+    RAILWAY_BUCKET_SECRET_ACCESS_KEY,
+    RAILWAY_BUCKET_ENDPOINT,
+])
+
+if USE_RAILWAY_BUCKET_STORAGE:
+    INSTALLED_APPS.append("storages")
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -192,6 +207,23 @@ STORAGES = {
     },
 }
 
+if USE_RAILWAY_BUCKET_STORAGE:
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+    }
+
+    AWS_STORAGE_BUCKET_NAME = RAILWAY_BUCKET_NAME
+    AWS_ACCESS_KEY_ID = RAILWAY_BUCKET_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY = RAILWAY_BUCKET_SECRET_ACCESS_KEY
+    AWS_S3_ENDPOINT_URL = RAILWAY_BUCKET_ENDPOINT
+    AWS_S3_REGION_NAME = RAILWAY_BUCKET_REGION
+    AWS_S3_ADDRESSING_STYLE = os.environ.get("AWS_S3_ADDRESSING_STYLE", "virtual")
+    AWS_S3_SIGNATURE_VERSION = "s3v4"
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_DEFAULT_ACL = None
+    AWS_QUERYSTRING_AUTH = env_bool("AWS_QUERYSTRING_AUTH", True)
+    AWS_QUERYSTRING_EXPIRE = int(os.environ.get("AWS_QUERYSTRING_EXPIRE", "3600"))
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -219,8 +251,11 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
+MEDIA_ROOT = os.environ.get(
+    "MEDIA_ROOT",
+    os.environ.get("RAILWAY_VOLUME_MOUNT_PATH", os.path.join(BASE_DIR, "media")),
+)
 
 AI_SERVER_URL = os.environ.get('AI_SERVER_URL', 'https://ocelot-delicate-logically.ngrok-free.app')
 

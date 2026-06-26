@@ -18,7 +18,7 @@ class ASDReport(models.Model):
     child = models.OneToOneField(ChildProfile, on_delete=models.CASCADE, related_name='asd_report')
 
     # ── Videos + questionnaire (Page 1) ───────────────────────
-    # FileField saves the actual file to disk under media/asd_videos/
+    # FileField saves through Django's configured default storage.
     motion_video = models.FileField(upload_to='asd_videos/motion/', null=True, blank=True)
     emotion_video = models.FileField(upload_to='asd_videos/emotion/', null=True, blank=True)
     questionnaire_answers = models.JSONField(null=True, blank=True)
@@ -57,7 +57,7 @@ class ADHDReport(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     child = models.OneToOneField(ChildProfile, on_delete=models.CASCADE, related_name='adhd_report')
-    eeg_file = models.FileField(upload_to='adhd_eeg/', null=True, blank=True)  # ← FileField here too
+    eeg_file = models.FileField(upload_to='adhd_eeg/', null=True, blank=True)
     ai_full_response = models.JSONField(null=True, blank=True)
     risk_level = models.CharField(max_length=10, choices=RISK_CHOICES, null=True, blank=True)
     recommendation = models.TextField(null=True, blank=True)

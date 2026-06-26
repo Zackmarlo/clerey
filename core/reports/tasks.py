@@ -12,6 +12,10 @@ AI_SERVER_REQUEST_ERROR = "AI_SERVER_REQUEST_ERROR"
 AI_SERVER_ERROR = "AI_SERVER_ERROR"
 
 
+def _file_tuple(field_file):
+    return (field_file.name.rsplit("/", 1)[-1], field_file)
+
+
 def _set_report_status(report, status_field, error_field, status, error_code=None):
     setattr(report, status_field, status)
     setattr(report, error_field, error_code)
@@ -42,12 +46,12 @@ def process_asd_videos_task(self, report_id):
     report = ASDReport.objects.get(id=report_id)
 
     try:
-        with open(report.motion_video.path, "rb") as motion_file, open(report.emotion_video.path, "rb") as emotion_file:
+        with report.motion_video.open("rb") as motion_file, report.emotion_video.open("rb") as emotion_file:
             ai_response = http_requests.post(
                 f"{settings.AI_SERVER_URL}/predict/observational",
                 files={
-                    "behavioral_video": motion_file,
-                    "emotion_video": emotion_file,
+                    "behavioral_video": _file_tuple(motion_file),
+                    "emotion_video": _file_tuple(emotion_file),
                 },
                 data={"questionnaire_data": json.dumps(report.questionnaire_answers)},
                 timeout=(60, 1000),
@@ -131,13 +135,13 @@ def process_asd_physiology_task(self, report_id):
         if observational_probability is None:
             raise ValueError("fused_probability is missing from videos_ai_response.")
 
-        with open(report.eeg_vhdr.path, "rb") as eeg_vhdr, open(report.eeg_vmrk.path, "rb") as eeg_vmrk, open(report.eeg_data.path, "rb") as eeg_data:
+        with report.eeg_vhdr.open("rb") as eeg_vhdr, report.eeg_vmrk.open("rb") as eeg_vmrk, report.eeg_data.open("rb") as eeg_data:
             ai_response = http_requests.post(
                 f"{settings.AI_SERVER_URL}/predict/physiology",
                 files={
-                    "eeg_vhdr": eeg_vhdr,
-                    "eeg_vmrk": eeg_vmrk,
-                    "eeg_data": eeg_data,
+                    "eeg_vhdr": _file_tuple(eeg_vhdr),
+                    "eeg_vmrk": _file_tuple(eeg_vmrk),
+                    "eeg_data": _file_tuple(eeg_data),
                 },
                 data={
                     "observational_probability": str(observational_probability),
@@ -217,10 +221,10 @@ def process_adhd_task(self, report_id):
     report = ADHDReport.objects.get(id=report_id)
 
     try:
-        with open(report.eeg_file.path, "rb") as eeg_file:
+        with report.eeg_file.open("rb") as eeg_file:
             ai_response = http_requests.post(
                 f"{settings.AI_SERVER_URL}/predict/adhd",
-                files={"eeg_csv": eeg_file},
+                files={"eeg_csv": _file_tuple(eeg_file)},
                 timeout=(60, 1000),
             )
 
