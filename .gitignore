@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.sqlite3
+.env
+.env.*
+core/media/
+*.zip
+db_backup.sql
+fixed_backup.sql
+staticfiles/
