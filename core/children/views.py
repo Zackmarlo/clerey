@@ -23,7 +23,7 @@ class ChildProfileListCreateView(APIView):
             Q(authorized_doctors__doctor=request.user)
         ).distinct()
         
-        serializer = ChildProfileSerializer(children, many=True)
+        serializer = ChildProfileSerializer(children, many=True, context={'request': request})
         return Response(serializer.data)
 
     def post(self, request):

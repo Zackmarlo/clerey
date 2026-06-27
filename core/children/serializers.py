@@ -74,15 +74,27 @@ class ChildProfileSerializer(serializers.ModelSerializer):
     dev_milestones = DevMilestonesSerializer(required=False, allow_null=True)
     med_history = MedHistorySerializer(required=False, allow_null=True)
     behavior = BehaviorSerializer(required=False, allow_null=True)
+    access_type = serializers.SerializerMethodField()
 
     class Meta:
         model = ChildProfile
         fields = [
             'id', 'child_id', 'basic_info', 'dev_milestones', 'med_history', 'behavior',
-            'clinic_note', 'eeg_history', 'created_by', 'created_at',
+            'clinic_note', 'eeg_history', 'created_by', 'access_type', 'created_at',
         ]
-        read_only_fields = ['child_id', 'created_by', 'created_at']
+        read_only_fields = ['child_id', 'created_by', 'access_type', 'created_at']
 
+    def get_access_type(self, obj):
+        request = self.context.get('request')
+
+        if not request or not request.user or not request.user.is_authenticated:
+            return None
+
+        if obj.created_by_id == request.user.id:
+            return 'owner'
+
+        return 'granted_access'
+    
     def validate_basic_info(self, value):
         """Validate basic_info structure"""
         if value and not isinstance(value, dict):
