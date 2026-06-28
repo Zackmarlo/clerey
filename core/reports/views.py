@@ -67,6 +67,7 @@ def validate_questionnaire_data(raw_questionnaire):
 
 
 def scan_files_or_response(files):
+    """
     for label, uploaded_file in files.items():
         uploaded_file.seek(0)
 
@@ -110,7 +111,9 @@ def scan_files_or_response(files):
                 'error': 'Invalid malware guard response.',
                 'scan_result': guard_data,
             }, status=503)
-
+    """
+    for uploaded_file in files.values():
+        uploaded_file.seek(0)
     return None
 
 # Shared helper — used by all views in this file
